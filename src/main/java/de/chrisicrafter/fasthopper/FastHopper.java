@@ -60,12 +60,10 @@ public class FastHopper {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         HOPPER_DATA = new HashMap<>();
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            HOPPER_DATA.put(level.dimension(), level.getDataStorage().computeIfAbsent(HopperData.factory(), "hopper_data"));
-        }
     }
 
     public static HopperData getHopperData(ServerLevel level) {
+        if(!HOPPER_DATA.containsKey(level.dimension())) HOPPER_DATA.put(level.dimension(), level.getDataStorage().computeIfAbsent(HopperData.factory(), "hopper_data"));
         return HOPPER_DATA.get(level.dimension());
     }
 }

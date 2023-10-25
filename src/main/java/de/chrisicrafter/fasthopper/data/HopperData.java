@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraftforge.common.Tags;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -35,7 +36,7 @@ public class HopperData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
+    public @NotNull CompoundTag save(CompoundTag tag) {
         //save to tag
         int size;
         size = fastHopperPositions.size();
@@ -78,7 +79,8 @@ public class HopperData extends SavedData {
         for(BlockPos blockPos : fastHopperPositions) {
             BlockState state = world.getBlockState(blockPos);
             HopperBlockEntity blockEntity = (HopperBlockEntity) world.getBlockEntity(blockPos);
-            for(int i = 0; i < Config.fastHopperSpeed; i++) {
+            for(int i = 1; i < Config.fastHopperSpeed; i++) {
+                assert blockEntity != null;
                 HopperBlockEntity.pushItemsTick(world, blockPos, state, blockEntity);
             }
         }
