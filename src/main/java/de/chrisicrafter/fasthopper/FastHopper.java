@@ -3,6 +3,7 @@ package de.chrisicrafter.fasthopper;
 import com.mojang.logging.LogUtils;
 import de.chrisicrafter.fasthopper.data.HopperData;
 import de.chrisicrafter.fasthopper.item.ModItems;
+import de.chrisicrafter.fasthopper.networking.ModMessages;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -49,6 +50,7 @@ public class FastHopper {
     private void commonSetup(FMLCommonSetupEvent event) {
         LOGGER.info("COMMON SETUP");
         event.enqueueWork(() -> {
+            ModMessages.register();
             BrewingRecipeRegistry.addRecipe(new BrewingRecipe(Ingredient.of(Items.HONEY_BOTTLE), Ingredient.of(Items.SLIME_BALL), new ItemStack(ModItems.GREASE_BOTTLE.get())));
         });
     }

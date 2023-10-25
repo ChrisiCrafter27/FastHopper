@@ -1,7 +1,10 @@
 package de.chrisicrafter.fasthopper.data;
 
 import de.chrisicrafter.fasthopper.Config;
+import de.chrisicrafter.fasthopper.FastHopper;
 import de.chrisicrafter.fasthopper.item.ModItems;
+import de.chrisicrafter.fasthopper.networking.ModMessages;
+import de.chrisicrafter.fasthopper.networking.packet.DebugScreenDataS2CPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -58,32 +61,39 @@ public class HopperData extends SavedData {
         return new HopperData(fastHopperPositions);
     }
 
-    public ItemStack hopperShiftUse(ServerLevel world, ItemStack itemStack, BlockPos blockPos) {
+    public ItemStack hopperShiftUse(ServerLevel level, ItemStack itemStack, BlockPos blockPos) {
         if(itemStack.is(ModItems.GREASE_BOTTLE.get()) && !fastHopperPositions.contains(blockPos)) {
-            setDirty();
-            world.playSound(null, blockPos, SoundEvents.SLIME_BLOCK_BREAK, SoundSource.BLOCKS);
+            level.playSound(null, blockPos, SoundEvents.SLIME_BLOCK_BREAK, SoundSource.BLOCKS);
             fastHopperPositions.add(blockPos);
+            ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(FastHopper.getHopperData(level)), level.dimension());
+            setDirty();
             if(itemStack.getDamageValue() < itemStack.getMaxDamage() - 1) itemStack.setDamageValue(itemStack.getDamageValue() + 1);
             else return new ItemStack(Items.GLASS_BOTTLE);
         } else if(itemStack.is(Tags.Items.SHEARS) && fastHopperPositions.contains(blockPos)) {
-            setDirty();
-            world.playSound(null, blockPos, SoundEvents.BEEHIVE_SHEAR, SoundSource.BLOCKS);
+            level.playSound(null, blockPos, SoundEvents.BEEHIVE_SHEAR, SoundSource.BLOCKS);
             fastHopperPositions.remove(blockPos);
+            ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(FastHopper.getHopperData(level)), level.dimension());
+            setDirty();
             if(itemStack.isDamageableItem()) itemStack.setDamageValue(itemStack.getDamageValue() + 1);
         }
         return itemStack;
     }
 
-    public void update(ServerLevel world) {
-        fastHopperPositions.removeIf(pos -> !world.getBlockState(pos).is(Blocks.HOPPER));
+    public void update(ServerLevel level) {
+        fastHopperPositions.removeIf(pos -> !level.getBlockState(pos).is(Blocks.HOPPER));
         for(BlockPos blockPos : fastHopperPositions) {
-            BlockState state = world.getBlockState(blockPos);
-            HopperBlockEntity blockEntity = (HopperBlockEntity) world.getBlockEntity(blockPos);
+            BlockState state = level.getBlockState(blockPos);
+            HopperBlockEntity blockEntity = (HopperBlockEntity) level.getBlockEntity(blockPos);
             for(int i = 1; i < Config.fastHopperSpeed; i++) {
                 assert blockEntity != null;
-                HopperBlockEntity.pushItemsTick(world, blockPos, state, blockEntity);
+                HopperBlockEntity.pushItemsTick(level, blockPos, state, blockEntity);
             }
         }
+        ModMessages.sendToPlayer(new DebugScreenDataS2CPacket(FastHopper.getHopperData(level)), level.dimension());
         setDirty();
+    }
+
+    public boolean isFast(BlockPos pos) {
+        return fastHopperPositions.contains(pos);
     }
 }
